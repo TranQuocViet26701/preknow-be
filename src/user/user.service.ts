@@ -21,4 +21,9 @@ export class UserService {
     const user = await this.userModel.findOne({ username });
     return user;
   }
+
+  async getAllUsers(): Promise<User[]> {
+    const users = await this.userModel.find();
+    return users;
+  }
 }
