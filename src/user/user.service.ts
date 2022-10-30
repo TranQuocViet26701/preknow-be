@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
@@ -12,6 +12,12 @@ export class UserService {
   ) {}
 
   async createUser(createUserDto: CreateUserDTO): Promise<User> {
+    const user = await this.userModel.findOne({
+      username: createUserDto.username,
+    });
+
+    if (user) throw new ConflictException('This account already existed!');
+
     const newUser = await this.userModel.create(createUserDto);
     newUser.password = await bcrypt.hash(newUser.password, 10);
     return newUser.save();
@@ -23,7 +29,19 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<User[]> {
-    const users = await this.userModel.find();
+    const users = await this.userModel.find().select(['-password']);
     return users;
+  }
+
+  async findById(id: string): Promise<User> {
+    const user = await this.userModel.findById(id).select(['-password']);
+    return user;
+  }
+
+  async delete(id: string) {
+    const deletedUser = await this.userModel
+      .findByIdAndDelete(id)
+      .select(['-password']);
+    return deletedUser;
   }
 }
