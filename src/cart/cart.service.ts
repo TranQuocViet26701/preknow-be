@@ -30,7 +30,7 @@ export class CartService {
   }
 
   async getCart(userId: string): Promise<CartDocument> {
-    const cart = await this.cartModel.findOne({ userId });
+    const cart = await await this.cartModel.findOne({ userId });
     return cart;
   }
 
