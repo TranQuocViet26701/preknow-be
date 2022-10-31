@@ -1,5 +1,6 @@
 import {
   Body,
+  Logger,
   Controller,
   Delete,
   Get,
@@ -17,8 +18,20 @@ import { ProductService } from './product.service';
 export class ProductController {
   constructor(private productService: ProductService) {}
 
+  private readonly logger = new Logger('Product Controller');
+
   @Get('/')
   async getProducts(@Query() filterProductDto: FilterProductDTO) {
+    if (
+      Object.keys(filterProductDto).length === 1 &&
+      +filterProductDto.page > 0
+    ) {
+      const products = await this.productService.getAllProducts(
+        +filterProductDto.page,
+      );
+      return products;
+    }
+
     if (Object.keys(filterProductDto).length) {
       const filterProducts = await this.productService.getFilteredProducts(
         filterProductDto,

@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { FilterProductDTO } from './dtos/filter-product.dto';
+import { PER_PAGE } from 'src/config';
 
 @Injectable()
 export class ProductService {
@@ -12,36 +13,55 @@ export class ProductService {
     private readonly productModel: Model<ProductDocument>,
   ) {}
 
-  async getFilteredProducts(
-    filterProductDto: FilterProductDTO,
-  ): Promise<Product[]> {
-    // TODO: Update to filter by mongodb
-    let { search, category } = filterProductDto;
+  private readonly logger = new Logger('Product Service');
 
-    let products = await this.getAllProducts();
+  async getFilteredProducts(filterProductDto: FilterProductDTO) {
+    const { search, category, page = 1 } = filterProductDto;
 
-    if (search) {
-      search = filterProductDto.search.toLowerCase();
-      products = products.filter(
-        (product) =>
-          product.name.toLowerCase().includes(search) ||
-          product.description.toLowerCase().includes(search),
-      );
+    if (category && !search) {
+      const products = await this.productModel
+        .find({ category })
+        .skip((page - 1) * PER_PAGE)
+        .limit(PER_PAGE)
+        .exec();
+      const count = await this.productModel.countDocuments({ category });
+
+      return {
+        products,
+        currentPage: +page,
+        totalPages: Math.ceil(count / PER_PAGE),
+      };
     }
 
-    if (category) {
-      category = filterProductDto.category.toLowerCase();
+    const products = await this.productModel
+      .find({ $text: { $search: `${search} ${category}` } })
+      .skip((page - 1) * PER_PAGE)
+      .limit(PER_PAGE)
+      .exec();
+    const count = await this.productModel.countDocuments({
+      $text: { $search: search },
+    });
 
-      products = products.filter((product) => product.category === category);
-    }
-
-    return products;
+    return {
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(count / PER_PAGE),
+    };
   }
 
-  async getAllProducts(): Promise<Product[]> {
-    const products = await this.productModel.find();
+  async getAllProducts(page = 1) {
+    const products = await this.productModel
+      .find()
+      .skip((page - 1) * PER_PAGE)
+      .limit(PER_PAGE)
+      .exec();
+    const count = await this.productModel.countDocuments();
 
-    return products;
+    return {
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(count / PER_PAGE),
+    };
   }
 
   async getProductById(id: string): Promise<Product> {
