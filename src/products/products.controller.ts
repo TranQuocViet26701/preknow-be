@@ -17,7 +17,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { FilterProductDTO } from './dtos/filter-product.dto';
-import { ProductService } from './product.service';
+import { ProductService } from './products.service';
 
 @Controller('store/products')
 export class ProductController {

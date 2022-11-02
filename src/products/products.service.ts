@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Product, ProductDocument } from './schemas/product.schema';
+import { Product, ProductDocument } from './schemas/products.schema';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { FilterProductDTO } from './dtos/filter-product.dto';
 import { PER_PAGE } from 'src/config';
@@ -93,5 +93,15 @@ export class ProductService {
     const deletedProduct = await this.productModel.findByIdAndRemove(id);
 
     return deletedProduct;
+  }
+
+  async isInStock(id: string, quantityBuy: number): Promise<boolean> {
+    const { quantity } = await this.getProductById(id);
+
+    if (quantity < quantityBuy) {
+      throw new BadRequestException('Not enough product in stock');
+    }
+
+    return true;
   }
 }

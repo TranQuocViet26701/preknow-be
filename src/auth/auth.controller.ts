@@ -6,8 +6,8 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDTO } from 'src/user/dtos/create-user.dto';
-import { UserService } from 'src/user/user.service';
+import { CreateUserDTO } from 'src/users/dtos/create-user.dto';
+import { UserService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from './enums/role.enum';
