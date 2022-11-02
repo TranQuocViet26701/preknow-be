@@ -6,8 +6,10 @@ import {
   UseGuards,
   Delete,
   NotFoundException,
+  ForbiddenException,
   Patch,
   Get,
+  Param,
 } from '@nestjs/common';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enums/role.enum';
@@ -32,10 +34,22 @@ export class CartController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.User)
   @Get('/')
-  async getCart(@Request() req) {
+  async getUserCart(@Request() req) {
     const { userId } = req.user;
     const cart = await this.cartService.getCart(userId);
     if (!cart) throw new NotFoundException('Cart does not exist');
+    return cart;
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.User)
+  @Get('/:id')
+  async getCartById(@Request() req, @Param('id') cartId: string) {
+    const { userId } = req.user;
+    const cart = await this.cartService.getCartById(cartId);
+    if (!cart || cart.userId.toString() !== userId) {
+      throw new ForbiddenException();
+    }
     return cart;
   }
 

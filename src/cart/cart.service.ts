@@ -20,17 +20,26 @@ export class CartService {
     price: number,
     subTotalPrice: number,
     totalPrice: number,
+    imageUrl: string,
   ): Promise<Cart> {
     const newCart = await this.cartModel.create({
       userId,
-      items: [{ ...itemDTO, price, subTotalPrice }],
+      items: [{ ...itemDTO, price, subTotalPrice, imageUrl }],
       totalPrice,
+      isDeleted: false,
     });
     return newCart;
   }
 
   async getCart(userId: string): Promise<CartDocument> {
-    const cart = await await this.cartModel.findOne({ userId });
+    const cart = await this.cartModel
+      .findOne({ userId, isDeleted: false })
+      .select(['-isDeleted']);
+    return cart;
+  }
+
+  async getCartById(id: string): Promise<CartDocument> {
+    const cart = await this.cartModel.findById(id).select(['-isDeleted']);
     return cart;
   }
 
@@ -48,7 +57,9 @@ export class CartService {
 
   async addItemToCart(userId: string, itemDTO: ItemDTO): Promise<Cart> {
     const { productId, quantity } = itemDTO;
-    const { price } = await this.productService.getProductById(productId);
+    const { price, imageUrl } = await this.productService.getProductById(
+      productId,
+    );
     const subTotalPrice = quantity * price;
 
     const cart = await this.getCart(userId);
@@ -65,7 +76,7 @@ export class CartService {
 
         cart.items[itemIndex] = item;
       } else {
-        cart.items.push({ ...itemDTO, price, subTotalPrice });
+        cart.items.push({ ...itemDTO, price, subTotalPrice, imageUrl });
       }
       this.recalculateCart(cart);
       await cart.save();
@@ -77,6 +88,7 @@ export class CartService {
         price,
         subTotalPrice,
         subTotalPrice,
+        imageUrl,
       );
       return newCart;
     }

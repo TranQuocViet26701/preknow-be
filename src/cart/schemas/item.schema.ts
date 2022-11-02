@@ -12,13 +12,16 @@ export class Item {
   name: string;
 
   @Prop()
-  quantity: number;
-
-  @Prop()
   price: number;
 
   @Prop()
+  quantity: number;
+
+  @Prop()
   subTotalPrice: number;
+
+  @Prop()
+  imageUrl: string;
 }
 
 export const ItemSchema = SchemaFactory.createForClass(Item);

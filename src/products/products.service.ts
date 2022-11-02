@@ -104,4 +104,19 @@ export class ProductService {
 
     return true;
   }
+
+  async updateMany(items: { id: string; quantity: number }[]) {
+    const bulkArr = [];
+    for (const item of items) {
+      bulkArr.push({
+        updateOne: {
+          filter: { _id: item.id },
+          update: { $inc: { quantity: -item.quantity } },
+        },
+      });
+    }
+
+    const result = await this.productModel.bulkWrite(bulkArr);
+    return result;
+  }
 }
