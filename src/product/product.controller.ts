@@ -9,7 +9,12 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { FilterProductDTO } from './dtos/filter-product.dto';
 import { ProductService } from './product.service';
@@ -53,6 +58,8 @@ export class ProductController {
     return product;
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Merchant, Role.Admin)
   @Post('/')
   async createProduct(@Body() createProductDto: CreateProductDTO) {
     const newProduct = await this.productService.createProduct(
@@ -61,6 +68,8 @@ export class ProductController {
     return newProduct;
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Merchant, Role.Admin)
   @Put('/:id')
   async updateProduct(
     @Param('id') id: string,
@@ -76,6 +85,8 @@ export class ProductController {
     return product;
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Merchant, Role.Admin)
   @Delete('/:id')
   async deleteProduct(@Param('id') id: string) {
     const product = await this.productService.deleteProduct(id);
