@@ -6,9 +6,11 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { GetCategoriesDto } from './dto/get-categories.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Controller('categories')
@@ -16,8 +18,8 @@ export class CategoriesController {
   constructor(private categoriesService: CategoriesService) {}
 
   @Get()
-  findAll() {
-    return this.categoriesService.getCategories();
+  findAll(@Query() getCategoriesDto: GetCategoriesDto) {
+    return this.categoriesService.getCategories(getCategoriesDto);
   }
 
   @Get(':id')

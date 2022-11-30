@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Query } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { get, Model } from 'mongoose';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { GetCategoriesDto } from './dto/get-categories.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category, CategoryDocument } from './schemas/category.schema';
 
@@ -11,8 +12,48 @@ export class CategoriesService {
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
   ) {}
 
-  async getCategories() {
-    return this.categoryModel.find();
+  async getCategories(
+    @Query() { limit = 5, page = 1, search }: GetCategoriesDto,
+  ) {
+    if (search) {
+      const categories = await this.categoryModel
+        .find({
+          $text: {
+            $search: search,
+          },
+        })
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+      const total = await this.categoryModel.countDocuments({
+        $text: {
+          $search: search,
+        },
+      });
+
+      return {
+        data: categories,
+        count: categories.length,
+        total,
+        currentPage: +page,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
+
+    const categories = await this.categoryModel
+      .find()
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const total = await this.categoryModel.countDocuments();
+
+    return {
+      data: categories,
+      count: categories.length,
+      total,
+      currentPage: +page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async getCategory(id: string) {
