@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import 'dotenv/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ProductModule } from './products/products.module';
-import { UserModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { CartModule } from './cart/cart.module';
+import { CategoriesModule } from './categories/categories.module';
 import { OrdersModule } from './orders/orders.module';
-import 'dotenv/config';
+import { ProductModule } from './products/products.module';
+import { UserModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import 'dotenv/config';
     AuthModule,
     CartModule,
     OrdersModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
