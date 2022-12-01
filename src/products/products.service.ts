@@ -1,42 +1,53 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Product, ProductDocument } from './schemas/products.schema';
+import { Model } from 'mongoose';
+import { CategoriesService } from '../categories/categories.service';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { FilterProductDTO } from './dtos/filter-product.dto';
-import { PER_PAGE } from 'src/config';
+import { UpdateProductDto } from './dtos/update-product.dto';
+import { Product, ProductDocument } from './schemas/products.schema';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel('Product')
     private readonly productModel: Model<ProductDocument>,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   private readonly logger = new Logger('Product Service');
 
-  async getFilteredProducts(filterProductDto: FilterProductDTO) {
-    const { search, category, page = 1 } = filterProductDto;
-
+  async getFilteredProducts({
+    search,
+    category,
+    page = 1,
+    limit = 20,
+  }: FilterProductDTO) {
     if (category && !search) {
       const products = await this.productModel
-        .find({ category })
-        .skip((page - 1) * PER_PAGE)
-        .limit(PER_PAGE)
+        .find({
+          category_slug: category,
+        })
+        .skip((page - 1) * limit)
+        .limit(limit)
         .exec();
-      const count = await this.productModel.countDocuments({ category });
+      const count = await this.productModel.countDocuments({
+        category_slug: category,
+      });
 
       return {
-        products,
+        data: products,
+        count: products.length,
+        total: count,
         currentPage: +page,
-        totalPages: Math.ceil(count / PER_PAGE),
+        totalPages: Math.ceil(count / limit),
       };
     }
 
     const products = await this.productModel
       .find({ $text: { $search: `${search} ${category}` } })
-      .skip((page - 1) * PER_PAGE)
-      .limit(PER_PAGE)
+      .skip((page - 1) * limit)
+      .limit(limit)
       .exec();
     const count = await this.productModel.countDocuments({
       $text: { $search: search },
@@ -44,45 +55,66 @@ export class ProductService {
 
     return {
       products,
+      count: products.length,
+      total: count,
       currentPage: page,
-      totalPages: Math.ceil(count / PER_PAGE),
+      totalPages: Math.ceil(count / limit),
     };
   }
 
-  async getAllProducts(page = 1) {
+  async getAllProducts({ page = 1, limit = 20 }) {
     const products = await this.productModel
       .find()
-      .skip((page - 1) * PER_PAGE)
-      .limit(PER_PAGE)
+      .skip((page - 1) * limit)
+      .limit(limit)
       .exec();
     const count = await this.productModel.countDocuments();
 
     return {
-      products,
+      data: products,
+      count: products.length,
+      total: count,
       currentPage: page,
-      totalPages: Math.ceil(count / PER_PAGE),
+      totalPages: Math.ceil(count / limit),
     };
   }
 
   async getProductById(id: string): Promise<Product> {
-    const product = await this.productModel.findById(id);
+    const product = await this.productModel
+      .findById(id)
+      .populate('category')
+      .populate('shop');
 
     return product;
   }
 
   async createProduct(createProductDto: CreateProductDTO): Promise<Product> {
-    const newProduct = await this.productModel.create(createProductDto);
+    const category = await this.categoriesService.getCategoryBySlug(
+      createProductDto.category_slug,
+    );
+
+    const newProduct = await this.productModel.create({
+      ...createProductDto,
+      category: category?._id,
+    });
 
     return newProduct.save();
   }
 
   async updateProduct(
     id: string,
-    createProductDto: CreateProductDTO,
+    updateProductDto: UpdateProductDto,
   ): Promise<Product> {
+    const category = await this.categoriesService.getCategoryBySlug(
+      updateProductDto.category_slug,
+    );
+
     const updatedProduct = await this.productModel.findByIdAndUpdate(
       id,
-      createProductDto,
+      {
+        ...updateProductDto,
+        category: category?._id,
+      },
       { new: true },
     );
 

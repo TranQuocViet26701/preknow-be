@@ -1,15 +1,25 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
+import * as mongoose from 'mongoose';
 import { Document } from 'mongoose';
-import { BookCover } from '../enums/book-cover.enum';
-import { Category } from '../enums/category.enum';
-import { Condition } from '../enums/condition.enum';
+import { Category } from '../../categories/schemas/category.schema';
+import { Shop } from '../../shops/schemas/shop.schema';
+import { Variation } from '../interfaces/variation.interface';
 
 export type ProductDocument = Product & Document;
 
 @Schema()
 export class Product {
-  @Prop()
+  @Prop({ required: true })
   name: string;
+
+  @Prop()
+  author: string;
+
+  @Prop()
+  manufacturer: string;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Shop' })
+  shop: Shop;
 
   @Prop()
   description: string;
@@ -20,11 +30,11 @@ export class Product {
   @Prop()
   oldPrice: number;
 
-  @Prop()
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Category' })
   category: Category;
 
   @Prop()
-  author: string;
+  category_slug: string;
 
   @Prop()
   quantity: number;
@@ -32,12 +42,35 @@ export class Product {
   @Prop()
   imageUrl: string;
 
-  @Prop()
-  condition: Condition;
+  @Prop(
+    raw({
+      conditions: {
+        type: [
+          {
+            name: String,
+          },
+        ],
+      },
+      bookCovers: {
+        type: [{ name: String }],
+      },
+    }),
+  )
+  variations: Variation;
 
   @Prop()
-  bookCover: BookCover;
+  numberOfPage: number;
+
+  @Prop()
+  manufacture_at: string;
+
+  @Prop()
+  dimension: string;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
-ProductSchema.index({ name: 'text', description: 'text', category: 'text' });
+ProductSchema.index({
+  name: 'text',
+  description: 'text',
+  category_slug: 'text',
+});

@@ -1,6 +1,6 @@
 import { Injectable, Query } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { get, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { GetCategoriesDto } from './dto/get-categories.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -63,6 +63,12 @@ export class CategoriesService {
     } catch (err) {
       return err;
     }
+  }
+
+  async getCategoryBySlug(slug: string) {
+    const category = await this.categoryModel.findOne({ slug });
+
+    return category;
   }
 
   async create(creatCategoryDto: CreateCategoryDto) {

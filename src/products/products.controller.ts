@@ -17,6 +17,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { FilterProductDTO } from './dtos/filter-product.dto';
+import { UpdateProductDto } from './dtos/update-product.dto';
 import { ProductService } from './products.service';
 
 @Controller('store/products')
@@ -27,26 +28,18 @@ export class ProductController {
 
   @Get('/')
   async getProducts(@Query() filterProductDto: FilterProductDTO) {
-    if (
-      Object.keys(filterProductDto).length === 1 &&
-      +filterProductDto.page > 0
-    ) {
+    if (!filterProductDto.search && !filterProductDto.category) {
       const products = await this.productService.getAllProducts(
-        +filterProductDto.page,
+        filterProductDto,
       );
       return products;
     }
 
-    if (Object.keys(filterProductDto).length) {
-      const filterProducts = await this.productService.getFilteredProducts(
-        filterProductDto,
-      );
+    const filterProducts = await this.productService.getFilteredProducts(
+      filterProductDto,
+    );
 
-      return filterProducts;
-    }
-
-    const allProducts = await this.productService.getAllProducts();
-    return allProducts;
+    return filterProducts;
   }
 
   @Get('/:id')
@@ -73,7 +66,7 @@ export class ProductController {
   @Put('/:id')
   async updateProduct(
     @Param('id') id: string,
-    @Body() updateProductDto: CreateProductDTO,
+    @Body() updateProductDto: UpdateProductDto,
   ) {
     const product = await this.productService.updateProduct(
       id,
