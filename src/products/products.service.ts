@@ -18,11 +18,12 @@ export class ProductService {
   private readonly logger = new Logger('Product Service');
 
   async getFilteredProducts({
-    search,
+    text,
     category,
     page = 1,
     limit = 20,
     orderBy,
+    price,
   }: FilterProductDTO) {
     const sortProps: any =
       orderBy && orderBy !== 'created_at'
@@ -33,20 +34,35 @@ export class ProductService {
             _id: -1,
           };
 
-    if (category && !search) {
+    let priceRange = null;
+    if (price && price.split(',').length === 2) {
+      priceRange = price.split(',').map((p) => +p * 1000);
+    }
+
+    if (category && !text) {
       const categoryList = category.split(',');
+      const findProps: any = !priceRange
+        ? {
+            category_slug: { $in: categoryList },
+          }
+        : {
+            $and: [
+              {
+                category_slug: { $in: categoryList },
+              },
+              {
+                price: { $gte: priceRange[0], $lte: priceRange[1] },
+              },
+            ],
+          };
 
       const products = await this.productModel
-        .find({
-          category_slug: { $in: categoryList },
-        })
+        .find(findProps)
         .sort(sortProps)
         .skip((page - 1) * limit)
         .limit(limit)
         .exec();
-      const count = await this.productModel.countDocuments({
-        category_slug: { $in: categoryList },
-      });
+      const count = await this.productModel.countDocuments(findProps);
 
       return {
         data: products,
@@ -60,15 +76,24 @@ export class ProductService {
       };
     }
 
+    const findProps: any = !priceRange
+      ? { $text: { $search: `${text} ${category}` } }
+      : {
+          $and: [
+            { $text: { $search: `${text} ${category}` } },
+            {
+              price: { $gte: priceRange[0], $lte: priceRange[1] },
+            },
+          ],
+        };
+
     const products = await this.productModel
-      .find({ $text: { $search: `${search} ${category}` } })
+      .find(findProps)
       .sort(sortProps)
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
-    const count = await this.productModel.countDocuments({
-      $text: { $search: search },
-    });
+    const count = await this.productModel.countDocuments(findProps);
 
     return {
       data: products,

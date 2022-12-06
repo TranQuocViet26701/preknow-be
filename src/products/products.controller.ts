@@ -28,7 +28,11 @@ export class ProductController {
 
   @Get('/')
   async getProducts(@Query() filterProductDto: FilterProductDTO) {
-    if (!filterProductDto.search && !filterProductDto.category) {
+    if (
+      !filterProductDto.text &&
+      !filterProductDto.category &&
+      !filterProductDto.price
+    ) {
       const products = await this.productService.getAllProducts(
         filterProductDto,
       );
