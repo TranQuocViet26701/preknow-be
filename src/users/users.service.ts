@@ -13,7 +13,7 @@ export class UserService {
 
   async createUser(createUserDto: CreateUserDTO): Promise<User> {
     const user = await this.userModel.findOne({
-      username: createUserDto.username,
+      email: createUserDto.email,
     });
 
     if (user) throw new ConflictException('This account already existed!');
@@ -23,8 +23,8 @@ export class UserService {
     return newUser.save();
   }
 
-  async findUser(username: string): Promise<User | undefined> {
-    const user = await this.userModel.findOne({ username });
+  async findUser(email: string): Promise<User | undefined> {
+    const user = await this.userModel.findOne({ email });
     return user;
   }
 

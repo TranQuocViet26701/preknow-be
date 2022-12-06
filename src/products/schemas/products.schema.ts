@@ -7,7 +7,7 @@ import { Variation } from '../interfaces/variation.interface';
 
 export type ProductDocument = Product & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Product {
   @Prop({ required: true })
   name: string;
@@ -66,6 +66,12 @@ export class Product {
 
   @Prop()
   dimension: string;
+
+  @Prop()
+  createdAt?: Date;
+
+  @Prop()
+  updatedAt?: Date;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

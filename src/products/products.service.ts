@@ -22,30 +22,47 @@ export class ProductService {
     category,
     page = 1,
     limit = 20,
+    orderBy,
   }: FilterProductDTO) {
+    const sortProps: any =
+      orderBy && orderBy !== 'created_at'
+        ? {
+            price: orderBy === 'max_price' ? -1 : 1,
+          }
+        : {
+            _id: -1,
+          };
+
     if (category && !search) {
+      const categoryList = category.split(',');
+
       const products = await this.productModel
         .find({
-          category_slug: category,
+          category_slug: { $in: categoryList },
         })
+        .sort(sortProps)
         .skip((page - 1) * limit)
         .limit(limit)
         .exec();
       const count = await this.productModel.countDocuments({
-        category_slug: category,
+        category_slug: { $in: categoryList },
       });
 
       return {
         data: products,
         count: products.length,
         total: count,
-        currentPage: +page,
-        totalPages: Math.ceil(count / limit),
+        from: (page - 1) * limit,
+        to: (page - 1) * limit + products.length,
+        per_page: +limit,
+        current_page: +page,
+        last_page: Math.ceil(count / limit),
       };
     }
 
     const products = await this.productModel
       .find({ $text: { $search: `${search} ${category}` } })
+      .sort(sortProps)
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
@@ -54,17 +71,30 @@ export class ProductService {
     });
 
     return {
-      products,
+      data: products,
       count: products.length,
       total: count,
-      currentPage: page,
-      totalPages: Math.ceil(count / limit),
+      from: (page - 1) * limit,
+      to: (page - 1) * limit + products.length,
+      per_page: +limit,
+      current_page: +page,
+      last_page: Math.ceil(count / limit),
     };
   }
 
-  async getAllProducts({ page = 1, limit = 20 }) {
+  async getAllProducts({ page = 1, limit = 20, orderBy = '' }) {
+    const sortProps: any =
+      orderBy && orderBy !== 'created_at'
+        ? {
+            price: orderBy === 'max_price' ? -1 : 1,
+          }
+        : {
+            _id: -1,
+          };
+
     const products = await this.productModel
       .find()
+      .sort(sortProps)
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
@@ -74,9 +104,24 @@ export class ProductService {
       data: products,
       count: products.length,
       total: count,
-      currentPage: page,
-      totalPages: Math.ceil(count / limit),
+      from: (page - 1) * limit,
+      to: (page - 1) * limit + products.length,
+      per_page: +limit,
+      current_page: +page,
+      last_page: Math.ceil(count / limit),
     };
+  }
+
+  async getPopularProducts({ page = 1, limit = 20 }) {
+    const products = await this.productModel
+      .find({
+        price: { $gte: 90000 },
+      })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    return products;
   }
 
   async getProductById(id: string): Promise<Product> {

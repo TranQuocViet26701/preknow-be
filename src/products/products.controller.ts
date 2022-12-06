@@ -42,6 +42,15 @@ export class ProductController {
     return filterProducts;
   }
 
+  @Get('popular-products')
+  async getPopularProducts(@Query() filterProductDto: FilterProductDTO) {
+    const popularProducts = await this.productService.getPopularProducts(
+      filterProductDto,
+    );
+
+    return popularProducts;
+  }
+
   @Get('/:id')
   async getProduct(@Param('id') id: string) {
     const product = await this.productService.getProductById(id);

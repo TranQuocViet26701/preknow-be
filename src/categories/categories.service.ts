@@ -35,8 +35,9 @@ export class CategoriesService {
         data: categories,
         count: categories.length,
         total,
-        currentPage: +page,
-        totalPages: Math.ceil(total / limit),
+        per_page: +limit,
+        current_page: +page,
+        last_page: Math.ceil(total / limit),
       };
     }
 
@@ -51,8 +52,9 @@ export class CategoriesService {
       data: categories,
       count: categories.length,
       total,
-      currentPage: +page,
-      totalPages: Math.ceil(total / limit),
+      per_page: +limit,
+      current_page: +page,
+      last_page: Math.ceil(total / limit),
     };
   }
 

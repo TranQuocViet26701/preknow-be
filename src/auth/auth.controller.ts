@@ -30,21 +30,26 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('/login')
-  async login(@Request() req) {
+  async login(@Request() req: any) {
     return this.authService.login(req.user);
+  }
+
+  @Post('/logout')
+  async logout(): Promise<boolean> {
+    return true;
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.User, Role.Merchant)
-  @Get('/user')
-  getProfile(@Request() req) {
-    return req.user;
+  @Get('/me')
+  me(@Request() req: any) {
+    return this.authService.me(req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get('/admin')
-  getDashboard(@Request() req) {
+  getDashboard(@Request() req: any) {
     return req.user;
   }
 }

@@ -47,6 +47,11 @@ export class OrdersController {
     return order;
   }
 
+  @Get('checkout')
+  async checkout() {
+    return this.ordersService.checkout();
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.User)
   @Get('/')
