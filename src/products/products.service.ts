@@ -34,13 +34,14 @@ export class ProductService {
             _id: -1,
           };
 
+    const categoryList = category?.split(',');
+
     let priceRange = null;
     if (price && price.split(',').length === 2) {
       priceRange = price.split(',').map((p) => +p * 1000);
     }
 
     if (category && !text) {
-      const categoryList = category.split(',');
       const findProps: any = !priceRange
         ? {
             category_slug: { $in: categoryList },
@@ -77,10 +78,20 @@ export class ProductService {
     }
 
     const findProps: any = !priceRange
-      ? { $text: { $search: `${text} ${category}` } }
+      ? {
+          $and: [
+            {
+              category_slug: { $in: categoryList },
+            },
+            { $text: { $search: text } },
+          ],
+        }
       : {
           $and: [
-            { $text: { $search: `${text} ${category}` } },
+            {
+              category_slug: { $in: categoryList },
+            },
+            { $text: { $search: text } },
             {
               price: { $gte: priceRange[0], $lte: priceRange[1] },
             },

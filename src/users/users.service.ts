@@ -19,7 +19,8 @@ export class UserService {
     if (user) throw new ConflictException('This account already existed!');
 
     const newUser = await this.userModel.create(createUserDto);
-    newUser.password = await bcrypt.hash(newUser.password, 10);
+    if (createUserDto.password)
+      newUser.password = await bcrypt.hash(newUser.password, 10);
     return newUser.save();
   }
 

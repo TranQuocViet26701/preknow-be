@@ -1,55 +1,35 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
-  Delete,
+  Post,
   Request,
-  Next,
-  ForbiddenException,
   UseGuards,
 } from '@nestjs/common';
-import { OrdersService } from './orders.service';
-import { CreateOrderDTO } from './dtos/create-order.dto';
-import { CartService } from 'src/cart/cart.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enums/role.enum';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { CreateOrderDTO } from './dtos/create-order.dto';
+import { OrdersService } from './orders.service';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(
-    private readonly ordersService: OrdersService,
-    private readonly cartService: CartService,
-  ) {}
+  constructor(private readonly ordersService: OrdersService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.User)
   @Post('/')
-  async createNewOrder(@Request() req, @Body() createOrderDto: CreateOrderDTO) {
+  async createNewOrder(
+    @Request() req: any,
+    @Body() createOrderDto: CreateOrderDTO,
+  ) {
     const { userId } = req.user;
-    const cart = await this.cartService.getCart(userId);
 
-    if (!cart) {
-      throw new ForbiddenException('Cart does not exist');
-    }
+    const res = await this.ordersService.createOrder(userId, createOrderDto);
 
-    const order = await this.ordersService.createOrder(
-      userId,
-      cart._id,
-      createOrderDto,
-    );
-    console.log('ORDER::::', order);
-
-    return order;
-  }
-
-  @Get('checkout')
-  async checkout() {
-    return this.ordersService.checkout();
+    return res;
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

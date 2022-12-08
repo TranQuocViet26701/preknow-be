@@ -1,3 +1,4 @@
+import { SocialLoginDto } from './dto/create-auth.dto';
 import {
   Body,
   Controller,
@@ -32,6 +33,11 @@ export class AuthController {
   @Post('/login')
   async login(@Request() req: any) {
     return this.authService.login(req.user);
+  }
+
+  @Post('social-login-token')
+  async socialLogin(@Body() socialLoginDto: SocialLoginDto) {
+    return this.authService.socialLogin(socialLoginDto);
   }
 
   @Post('/logout')

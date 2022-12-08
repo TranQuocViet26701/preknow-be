@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes } from 'mongoose';
 import { PaymentMethod } from '../enums/payment-method.enum';
+import { Item } from '../interfaces/item.interface';
 
 export type OrderDocument = Order & Document;
 
@@ -9,17 +10,17 @@ export class Order {
   @Prop({ type: SchemaTypes.ObjectId, ref: 'User' })
   userId: string;
 
-  @Prop({ type: SchemaTypes.ObjectId, ref: 'Cart' })
-  cart: string;
+  @Prop()
+  transactionId: string;
+
+  @Prop()
+  items: Item[];
 
   @Prop()
   paymentMethod: PaymentMethod;
 
   @Prop()
-  contactNumber: string;
-
-  @Prop()
-  shippingAddress: string;
+  amount: number;
 
   @Prop()
   createdAt?: Date;
