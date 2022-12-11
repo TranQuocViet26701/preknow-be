@@ -1,3 +1,4 @@
+import { UpdaterUserDto } from './dtos/update-user';
 import { ConflictException, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -37,6 +38,17 @@ export class UserService {
   async findById(id: string): Promise<User> {
     const user = await this.userModel.findById(id).select(['-password']);
     return user;
+  }
+
+  async updateUser(
+    userId: string,
+    updateUserDto: UpdaterUserDto,
+  ): Promise<User> {
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      updateUserDto,
+    );
+    return updatedUser;
   }
 
   async delete(id: string) {

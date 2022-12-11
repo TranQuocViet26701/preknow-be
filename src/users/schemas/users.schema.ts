@@ -10,6 +10,12 @@ export class User {
   name: string;
 
   @Prop()
+  bio: string;
+
+  @Prop()
+  contact: string;
+
+  @Prop()
   email: string;
 
   @Prop()
