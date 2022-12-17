@@ -80,9 +80,11 @@ export class ProductService {
     const findProps: any = !priceRange
       ? {
           $and: [
-            {
-              category_slug: { $in: categoryList },
-            },
+            categoryList?.length >= 0
+              ? {
+                  category_slug: { $in: categoryList },
+                }
+              : {},
             { $text: { $search: text } },
           ],
         }
