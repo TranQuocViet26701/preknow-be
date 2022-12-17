@@ -22,7 +22,7 @@ export class OrdersService {
     const embed_data = {
       redirecturl:
         process.env.ZALOPAY_REDIRECT_URL ||
-        'http://localhost:3003/checkout/finish',
+        'https://preknow.vercel.app/checkout/finish',
     };
 
     const order: any = {
